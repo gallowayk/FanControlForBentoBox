@@ -3,7 +3,7 @@
 After printing out the Bento Box filtration model, I wanted a means to control the fans so they weren't on 24/7 and only enabled when high VOC content was present. Originally, I was only going to use a bimetal temp switch since the ambient internal temperature of the printer would only rise while printing ABS, PC, Nylon, etc. However, I wanted to take a more sophisticated approach while keeping costs low. 
 
 **Electronics**
-RPi Pico (any variant)
+- RPi Pico (any variant)
 - 3.3V trigger opto-isolated relay https://www.amazon.com/dp/B07XGZSYJV 
 - MS1100 gas sensor https://www.amazon.com/dp/B0BF4JDW26 
 - 128x64px SSD1306 OLED screen https://www.amazon.com/gp/product/B0833PF7ML 
@@ -34,7 +34,7 @@ RPi Pico (any variant)
  
 
 
-Note: Please be sure to safely work on your electronics.
+**Note: Please be sure to safely work on your electronics.**
 
 Do not work on anything while power is connected
 Do your best to avoid inhaling the flux/solder fumes
