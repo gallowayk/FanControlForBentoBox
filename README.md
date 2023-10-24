@@ -14,13 +14,13 @@ RPi Pico (any variant)
 
 
 **Hardware**
-- x M2x5 or M2x8 self-tapping screw
-- One for VOC sensor
-- One for RPi Pico
+- 2x M2x5 or M2x8 self-tapping screw
+  - One for VOC sensor
+  - One for RPi Pico
 - 8x 4x2mm Magnets
 - Various jumper wires
 - Helps to use male to female jumper wires
--- It also helps to have a Dupont connection/terminal kit and crimper; this will allow you to make your own wires of just the right length
+- It also helps to have a Dupont connection/terminal kit and crimper; this will allow you to make your own wires of just the right length
 
 
 **Tools**
