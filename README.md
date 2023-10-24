@@ -8,7 +8,7 @@ RPi Pico (any variant)
 - MS1100 gas sensor https://www.amazon.com/dp/B0BF4JDW26 
 - 128x64px SSD1306 OLED screen https://www.amazon.com/gp/product/B0833PF7ML 
 - LM2596S buck converter https://www.amazon.com/gp/product/B07QKHR6PY 
-- The buck converter must be adjusted to +5VDC or +3/3.3VDC
+    - The buck converter must be adjusted to +5VDC or +3/3.3VDC
 
 ![Assembled Electronics box](/Images/IMG_1580.jpg)
 
