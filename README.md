@@ -1,3 +1,5 @@
+![Full Unit in Place](/Images/IMG_1583.jpg)
+
 After printing out the Bento Box filtration model, I wanted a means to control the fans so they weren't on 24/7 and only enabled when high VOC content was present. Originally, I was only going to use a bimetal temp switch since the ambient internal temperature of the printer would only rise while printing ABS, PC, Nylon, etc. However, I wanted to take a more sophisticated approach while keeping costs low. 
 
 **Electronics**
