@@ -43,7 +43,7 @@ Do your best to avoid inhaling the flux/solder fumes
 **Software**
 Please read through the entire program to acclimate yourself with the functionality!
 Pin definitions can be easily changed at the top from those I chose to use.
-For those who haven't used Raspberry Pis for their own scripts, rename “VOC_CKT.py” to “main.py” and save to your RPi Pico.
+For those who haven't used Raspberry Pis for their own scripts, save “main.py” to your RPi Pico. When power is applied, this program will run automatically. 
  
 
 When I have a bit more time, I'll create a full write up with instructions on how to connect everything. Until then, feel free to ask me questions. Please note, however, that I may not be able to respond quickly.
