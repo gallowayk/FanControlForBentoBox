@@ -30,8 +30,9 @@ After printing out the Bento Box filtration model, I wanted a means to control t
 - Precision tool set
 - Ball-end hex keys can be used as well
 - Ferrule crimper + ferrules
-- Heatshrink 
- 
+- Heatshrink
+- 
+ ![Wiring Diagram](/Images/Diagram.png)
 
 
 **Note: Please be sure to safely work on your electronics.**
