@@ -5,7 +5,8 @@ After printing out the Bento Box filtration model, I wanted a means to control t
 **Electronics**
 - RPi Pico (any variant)
 - 3.3V trigger opto-isolated relay https://www.amazon.com/dp/B07XGZSYJV 
-- MS1100 gas sensor https://www.amazon.com/dp/B0BF4JDW26 
+- MS1100 gas sensor https://www.amazon.com/dp/B0BF4JDW26
+- AHT21 temperature and humidity sensor https://www.amazon.com/HiLetgo-Precision-Temperature-Humidity-2-0-5-5V/dp/B09KGW1G41/ref=sr_1_1?crid=2S7GDT005PZ1J&dib=eyJ2IjoiMSJ9.9JbgYaCwdJ3Bu2tPpmYO8JT4jBVGgzy2xskd9ds7lU-Vm1S_DRFpFxZ2ed7sxHwDg30RkraO381sEx3rLJTya3kl8IY_m3K5Wu1LMr0MNqB6qxS1xXAolapEOD3HWWfIFsEzPzPEq1cLhgUfoYQDtXXA8q0qkdt0mzQKxfpbpJt0DQKvs_ot3KuqB4Xbm1lcmvbAz9Rb5F-uHQZx1wrLIXnjcj_Q8dowmKgb1OZ9OVE.k4-kCvhVlD0qiWUWE1QeGVfbAW5VqWgz2DAbHSHnM0Q&dib_tag=se&keywords=aht21+humidity+and+temp+sensor&qid=1709663558&sprefix=aht21+humidity+and+temp+sensor%2Caps%2C174&sr=8-1
 - 128x64px SSD1306 OLED screen https://www.amazon.com/gp/product/B0833PF7ML 
 - LM2596S buck converter https://www.amazon.com/gp/product/B07QKHR6PY 
     - The buck converter must be adjusted to +5VDC or +3/3.3VDC
@@ -31,7 +32,7 @@ After printing out the Bento Box filtration model, I wanted a means to control t
 - Ball-end hex keys can be used as well
 - Ferrule crimper + ferrules
 - Heatshrink
-- 
+
  ![Wiring Diagram](/Images/Diagram.png)
 
 
