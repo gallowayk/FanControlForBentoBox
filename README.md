@@ -45,7 +45,17 @@ Do your best to avoid inhaling the flux/solder fumes
 Please read through the entire program to acclimate yourself with the functionality!
 Pin definitions can be easily changed at the top from those I chose to use.
 For those who haven't used Raspberry Pis for their own scripts, save “main.py” to your RPi Pico. When power is applied, this program will run automatically. 
- 
+
+For the program to run you need to also install some packages to the pico board as follow
+ - picozero
+ - ssd1306 (for the led screen)
+ - time
+ - typing_extensions
+ - micropython_ahtx0 (for the external temp sensor)
+
+ Recomended to use the [Thonny IDE](https://thonny.org/) for package management and connection to the pico
+
+ Before uploading the main.py you need to install the micropython firmware to the pico more details [MicroPython Downloads](https://micropython.org/download/) please select your model from the list.
 
 When I have a bit more time, I'll create a full write up with instructions on how to connect everything. Until then, feel free to ask me questions. Please note, however, that I may not be able to respond quickly.
 There are still some tweaks I'd like to make, so a revision may come at some point. I want to reduce the clutter in the electronics housing by utilizing integrated solutions or developing my own PCB with an RP2040 chip and on-board power handling.
