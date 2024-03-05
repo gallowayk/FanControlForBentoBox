@@ -86,14 +86,12 @@ while True:
         #cpu_temp = 27 - (adc_voltage - 0.706)/0.001721
         if seconds <= 5:
             if show_temp:
-                print('Showing Temp', show_temp, seconds);
                 bigText.set_textpos(0,21)
                 bigText.printstring("TEMP: {}C".format(round(temp,1)))
                 oled.show()
                 time.sleep(1)
                 seconds += 1
             else:
-                print('Showing RH', show_temp, seconds);
                 bigText.set_textpos(0,21)
                 bigText.printstring("%RH: {}%".format(round(humidity,2)))
                 oled.show()
