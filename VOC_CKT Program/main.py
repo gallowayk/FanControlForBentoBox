@@ -1,4 +1,5 @@
 from machine import Pin, I2C, SoftI2C, ADC
+import BME280_float as bme280
 from picozero import pico_led
 from ssd1306 import SSD1306_I2C
 import ssd1306
@@ -10,13 +11,19 @@ import ahtx0
 from web_server import WebServer
 import bluetooth
 from ble_simple_peripheral import BLESimplePeripheral
-import time
 import asyncio
 from os import uname
+from display_service import DisplayService
+
+# Check if we have extended network and Bluetooth LE capabilities with Pi Pico W if not we continue with basic capabilities.
 if uname()[4] == 'Raspberry Pi Pico W with RP2040':
     print('RPi Pico W')   # True
+    display = DisplayService()
+    display.displaySplash('Creality')
 else:
     print('RPi Pico')     # False
+    display = DisplayService()
+    display.displaySplash('Creality')
 
 ble = bluetooth.BLE()
 
@@ -43,11 +50,13 @@ fan_pin = 22 #GPIO pin of fan relay signal
 
 #Temp and Humidity setup
 i2c_temp = I2C(1, sda=Pin(14), scl=Pin(15), freq=400000)
+
 temp_sensor = ahtx0.AHT20(i2c_temp)
 #LED Setup
 led = Pin(led_pin, Pin.OUT)
 
 #set up OLED
+
 i2c_oled = I2C(0,sda=Pin(0), scl=Pin(1), freq=400000)
 oled_width = 128
 oled_height = 64

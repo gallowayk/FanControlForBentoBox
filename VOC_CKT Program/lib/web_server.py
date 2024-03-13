@@ -4,7 +4,7 @@ from time import sleep
 import asyncio
 
 class WebServer():
-    def __init__(self,  temperature, led, led_state, ssid = 'iPhone 13 Pro Max' , password = 'zakarias'):
+    def __init__(self,  temperature, led, led_state, ssid = 'Asus_5C' , password = 'zakarias'):
         self.ssid = ssid 
         self.password = password
         self.wlan = network.WLAN(network.STA_IF)
