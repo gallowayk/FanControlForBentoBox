@@ -12,6 +12,11 @@ import bluetooth
 from ble_simple_peripheral import BLESimplePeripheral
 import time
 import asyncio
+from os import uname
+if uname()[4] == 'Raspberry Pi Pico W with RP2040':
+    print('RPi Pico W')   # True
+else:
+    print('RPi Pico')     # False
 
 ble = bluetooth.BLE()
 
@@ -93,11 +98,18 @@ def on_rx(data):
         led_state = 1 - led_state  # Update the LED state
         pico_led.on() if led_state == 1 else pico_led.off() # Toggle the LED state (on/off)
         
+    
 async def main():
-    global count, seconds, voc_level_avg, voc_level_sum, voc_def, show_temp, debounce_time
+    global count, seconds, voc_level_avg, voc_level_sum, voc_def, show_temp, debounce_time, led_state
+    
+    temperature = temp_sensor.temperature
     # Create a Bluetooth Low Energy (BLE) object
-    webInterface = WebServer(temp_sensor.temperature, pico_led, led_state)
-    asyncio.create_task(asyncio.start_server(webInterface.serve, "0.0.0.0", 80))
+    webInterface = WebServer(temperature, pico_led, led_state)
+    
+    def serveWrapper(reader, writer):
+        return webInterface.serve(reader, writer, led_state)
+    
+    asyncio.create_task(asyncio.start_server(serveWrapper, "0.0.0.0", 80))
     # Main Loop
     while True:
 #         if not webInterface.isConnected:  # If not connected to Wi-Fi
@@ -105,6 +117,9 @@ async def main():
 #             webInterface.connect()    # Reconnect to Wi-Fi network
 ###################### VOC SENSING ########################  
         if count <= 49:
+            if led_state != pico_led.value:
+                led_state = pico_led.value
+                webInterface.setLedStatus(led_state)
             count += 1
             voc_level_new = voc_def.read_u16() * voc_conv
             voc_level_sum += voc_level_new
@@ -120,6 +135,7 @@ async def main():
 ###################### TEMPERATURE ########################
             temp = temp_sensor.temperature
             humidity = temp_sensor.relative_humidity
+            webInterface.setTemperature(temp)
             #adc_voltage = temp.read_u16() * 3.3 / 65535
             #cpu_temp = 27 - (adc_voltage - 0.706)/0.001721
             if seconds <= 5:
@@ -127,7 +143,7 @@ async def main():
                     bigText.set_textpos(0,21)
                     bigText.printstring("TEMP: {}C".format(round(temp,1)))
                     oled.show()
-                    time.sleep(1)
+                    time.sleep(0.5)
                     seconds += 1
                 else:
                     bigText.set_textpos(0,21)
@@ -160,8 +176,9 @@ async def main():
         if (time.ticks_ms() - debounce_time) > 300:
             if sp.is_connected():  # Check if a BLE connection is established
                 sp.on_write(on_rx)  # Set the callback function for data reception
+                ledStatus = "On" if led_state == 1 else "Off"
                 # Create a message string
-                msg="TEMP: {}C".format(round(temp,1))+" %RH: {}%\r\n".format(round(humidity,2))
+                msg="LED State:"+ledStatus+" TEMP: {}C".format(round(temp,1))+" %RH: {}%\r\n".format(round(humidity,2))
                 # Send the message via BLE
                 sp.send(msg)
                 # Update the debounce time    
