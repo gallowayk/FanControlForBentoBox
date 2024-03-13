@@ -1,29 +1,26 @@
 import network
 import socket
 from time import sleep
-from picozero import pico_temp_sensor, pico_led
-import machine
 import asyncio
 
 class WebServer():
-    def __init__(self, ssid = 'Asus_5C' , password = 'zakarias'):
+    def __init__(self,  temperature, led, led_state, ssid = 'Asus_5C' , password = 'zakarias'):
         self.ssid = ssid 
         self.password = password
         self.wlan = network.WLAN(network.STA_IF)
         self.webpage = self.webpage
-        self.temperature = 0
-        self.state = 'OFF'
-        self._isConnected = self.wlan.isconnected()
-        pico_led.off()
+        self.led = led
+        self.temperature = temperature
+        self.state = led_state
+        self._isConnected = False
         while not self.wlan.isconnected():
             self.connect()
             print('Setting up webserver...') 
-    
+         
     def disconnect(self):
         return self.wlan.disconnect()
     def connect(self):
-    #Connect to WLAN
-        
+        #Connect to WLAN
         self.wlan.active(True)
         self.wlan.config(pm=0xa11140)
         self.wlan.connect(self.ssid, self.password)
@@ -41,11 +38,11 @@ class WebServer():
             print('Enter this address in browser-> ' + status[0])
             self._isConnected = self.wlan.isconnected()# Print IP address for accessing the web server
             return status[0]
-    
+
     @property
     def isConnected(self):
         return self._isConnected
-    
+
     def webpage(self):
         #Template HTML
         html = """<!DOCTYPE html>
@@ -106,22 +103,21 @@ class WebServer():
         print("Client connected")
         request_line = await reader.readline()
         print('Request:', request_line)
-    
+
         # Skip HTTP request headers
         while await reader.readline() != b"\r\n":
             pass
-    
+
         request = str(request_line, 'utf-8').split()[1]
         print('Request:', request)
 
         if request == '/lighton?':
-            pico_led.on()
+            self.led.on()
             self.state = 'ON'
         elif request =='/lightoff?':
-            pico_led.off()
+            self.led.off()
             self.state = 'OFF'
-        temperature = pico_temp_sensor.temp
-        html = self.webpage() % (self.state, "{:.2f}".format(temperature), "{:.2f}".format(temperature * 9/5 + 32))
+        html = self.webpage() % ('On' if self.state == 1 else 'Off', "{:.2f}".format(self.temperature), "{:.2f}".format(self.temperature * 9/5 + 32))
         writer.write('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
         writer.write(html)
         await writer.drain()
