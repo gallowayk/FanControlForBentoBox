@@ -1,5 +1,4 @@
 from machine import Pin, I2C, SoftI2C, ADC
-import BME280_float as bme280
 from picozero import pico_led
 from ssd1306 import SSD1306_I2C
 import ssd1306
@@ -15,14 +14,13 @@ import asyncio
 from os import uname
 from display_service import DisplayService
 
+display = DisplayService()
 # Check if we have extended network and Bluetooth LE capabilities with Pi Pico W if not we continue with basic capabilities.
 if uname()[4] == 'Raspberry Pi Pico W with RP2040':
-    print('RPi Pico W')   # True
-    display = DisplayService()
+    print('RPi Pico W')   # True    
     display.displaySplash('Creality')
 else:
     print('RPi Pico')     # False
-    display = DisplayService()
     display.displaySplash('Creality')
 
 ble = bluetooth.BLE()
@@ -109,16 +107,18 @@ def on_rx(data):
         
     
 async def main():
-    global count, seconds, voc_level_avg, voc_level_sum, voc_def, show_temp, debounce_time, led_state
+    global count, seconds, voc_level_avg, voc_level_sum, voc_def, show_temp, debounce_time, led_state, display
     
     temperature = temp_sensor.temperature
     # Create a Bluetooth Low Energy (BLE) object
-    webInterface = WebServer(temperature, pico_led, led_state)
+    webInterface = WebServer(temperature, pico_led, led_state, 'iPhone 13 Pro Max', 'zakarias', display)
     
     def serveWrapper(reader, writer):
         return webInterface.serve(reader, writer, led_state)
     
     asyncio.create_task(asyncio.start_server(serveWrapper, "0.0.0.0", 80))
+    
+ 
     # Main Loop
     while True:
 #         if not webInterface.isConnected:  # If not connected to Wi-Fi
