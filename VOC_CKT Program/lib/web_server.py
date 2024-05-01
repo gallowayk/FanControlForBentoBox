@@ -4,7 +4,7 @@ from time import sleep
 import asyncio
 
 class WebServer():
-    def __init__(self,  temperature, led, led_state, ssid = 'Asus_5C' , password = 'zakarias'):
+    def __init__(self,  temperature, led, led_state, conection_state, ssid = '' , password = ''):
         self.ssid = ssid 
         self.password = password
         self.wlan = network.WLAN(network.STA_IF)
@@ -12,13 +12,16 @@ class WebServer():
         self.led = led
         self.temperature = temperature
         self.state = led_state
-        self._isConnected = False
+        self._isConnected = conection_state
         while not self.wlan.isconnected():
             self.connect()
-            print('Setting up webserver...') 
-         
+        print('Connecting to '+ssid+'...')
+        self._isConnected = True
+            
     def disconnect(self):
+        self._isConnected = False
         return self.wlan.disconnect()
+    
     def connect(self):
         #Connect to WLAN
         self.wlan.active(True)
@@ -28,7 +31,7 @@ class WebServer():
         while max_wait > 0 and not self.wlan.isconnected():
             max_wait -= 1           # Decrement wait time
             print('waiting for connection...')
-            sleep(1)           # Wait for 1 second       
+            sleep(0.5)           # Wait for 1 second       
 
         if not self.wlan.isconnected():
             print('Network Connection has failed')  # Print failure message if connection fails
@@ -36,7 +39,8 @@ class WebServer():
             print('Connected to the network successfully.')  # Print success message if connection successful
             status = self.wlan.ifconfig()  # Get network interface configuration
             print('Enter this address in browser-> ' + status[0])
-            self._isConnected = self.wlan.isconnected()# Print IP address for accessing the web server
+            self._isConnected = self.wlan.isconnected()#
+            #TO DO Print IP address for accessing the web server
             return status[0]
 
     @property
@@ -132,3 +136,4 @@ class WebServer():
         await writer.drain()
         await writer.wait_closed()
         print('Client Disconnected')
+        

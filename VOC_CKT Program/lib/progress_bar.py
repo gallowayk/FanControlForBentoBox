@@ -50,7 +50,7 @@ class BarBase():
     
     # draw outline
     if not self.inited:
-      self.oled.framebuf.rect(
+      self.oled.rect(
         self.x,
         self.y,
         self.width,
@@ -92,7 +92,7 @@ class BarBase():
   def set_percent(self, percent=100):
     if self.percent > percent:
       # clear out previous percentage
-      self.oled.framebuf.fill_rect(
+      self.oled.fill_rect(
         self.x + 1 + math.ceil(self.width * (percent / 100)),
         self.y + 1,
         math.ceil((self.width - 2) * (self.percent - percent) / 100),
@@ -112,7 +112,7 @@ class BarBase():
     text_y = math.floor(self.y + (self.height - 6) / 2)
     
     if self.show_text_mask:
-      self.oled.framebuf.fill_rect(
+      self.oled.fill_rect(
         text_x - block_padding,
         text_y - block_padding,
         text_width + block_padding * 2,

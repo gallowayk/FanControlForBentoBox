@@ -1,0 +1,32 @@
+{
+    "sensors": {
+        "voc": {
+            "level_avg": 0,
+            "level_sum": 0,
+            "sense_pin": 26,
+            "threshold": 1.1,
+            "analog": true
+        },
+        "ahtx": {
+            "sda_pin": 14,
+            "scl_pin": 15,
+            "analog": false,
+            "I2Channel": 1,
+            "freq": 400000
+        }
+    },
+    "display":{
+        "sda_pin": 0,
+        "scl_pin": 1,
+        "width": 128,
+        "height": 64,
+        "freq": 400000,
+        "splashLogo": "Creality",
+        "I2Channel": 0
+    },
+    "network":{
+        
+    },
+    
+    
+}
