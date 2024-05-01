@@ -59,7 +59,6 @@ class DisplayService():
         self._connectionState = value
         
     def main(self, sensors):
-        print('Temperature:', sensors)
         voc = sensors.voc
         count = 0
         seconds = 0
@@ -69,6 +68,7 @@ class DisplayService():
         while True:
             print('connection_state from display service: '+ str(self._connectionState))
             if self._connectionState == False:
+                self.initProgressBar()
                 self.displayProgressBar()
             else:
                 if count <= 49:
@@ -125,6 +125,7 @@ class DisplayService():
     #                 fan_relay.off() #relay pin low
                     bigText.set_textpos(0,42) 
                     bigText.printstring("FAN: OFF")
+        self.clearDisplay(0)
 #                 led.value(0)
 #             if (time.ticks_ms() - debounce_time) > 300:
 #                 if sp.is_connected():  # Check if a BLE connection is established

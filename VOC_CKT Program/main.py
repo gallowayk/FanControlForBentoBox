@@ -73,9 +73,8 @@ def on_rx(data):
 async def main():
     global count, seconds, voc_level_avg, voc_level_sum, voc_def, show_temp, debounce_time, led_state, display, connection_state
     second_thread = _thread.start_new_thread(display.main, (sensors,)) 
-    temperature = temp_sensor.temperature
     # Create a Bluetooth Low Energy (BLE) object
-    webInterface = WebServer(temperature, pico_led, led_state, connection_state, 'iPhone 13 Pro Max', 'zakarias')
+    webInterface = WebServer(sensors.temperature, pico_led, led_state, connection_state, 'iPhone 13 Pro Max', 'zakarias')
     def serveWrapper(reader, writer):
         return webInterface.serve(reader, writer, led_state)
 #     task_connect = asyncio.create_task(webInterface.connect())
