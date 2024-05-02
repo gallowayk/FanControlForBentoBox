@@ -40,7 +40,6 @@ class DisplayService():
         self.display.blit(frame,0,0)
         self.display.show()
         time.sleep(timeToDisplay)
-        self.clearDisplay()
     
     def initProgressBar(self, message=''):
         #To DO implement message parser
@@ -71,6 +70,8 @@ class DisplayService():
                 self.initProgressBar()
                 self.displayProgressBar()
             else:
+                if count == 0:
+                    self.clearDisplay()
                 if count <= 49:
 #                 if led_state != pico_led.value:
 #                     led_state = pico_led.value
@@ -95,46 +96,34 @@ class DisplayService():
                     if seconds <= 5:
                         if show_temp:
                             bigText.set_textpos(0,21)
-                            bigText.printstring("TEMP: {}C".format(round(temp,1)))
+                            bigText.printstring("TEMP: {}C  ".format(round(temp,1)))
                             self.show()
                             time.sleep(0.5)
                             seconds += 1
                         else:
                             bigText.set_textpos(0,21)
-                            bigText.printstring("%RH: {}%".format(round(humidity,2)))
+                            bigText.printstring("RH: {}%   ".format(round(humidity,2)))
                             self.show()
-                            time.sleep(1)
+                            time.sleep(0.5)
                             seconds += 1
                     else:
                         seconds = 0
                         show_temp = not show_temp
-                        self.clearDisplay(0) #clear screen of any artifacts
+#                         self.clearDisplay(0) #clear screen of any artifacts
                         self.show()
                 else:
                     count = 1  #reset counter
                     voc_level_sum = voc_level_avg #reset running sum of VOC readings
-                    self.clearDisplay(0) #clear screen of any artifacts
+#                     self.clearDisplay(0) #clear screen of any artifacts
                     self.show()
                 
                 if voc_level_avg >= voc.threshold:
     #                 fan_relay.on() #relay pin high
                     bigText.set_textpos(0,42)
-                    bigText.printstring("FAN: ON")
+                    bigText.printstring("FAN: ON ")
     #                 led.value(1)
                 else:
     #                 fan_relay.off() #relay pin low
                     bigText.set_textpos(0,42) 
-                    bigText.printstring("FAN: OFF")
+                    bigText.printstring("FAN: OFF ")
         self.clearDisplay(0)
-#                 led.value(0)
-#             if (time.ticks_ms() - debounce_time) > 300:
-#                 if sp.is_connected():  # Check if a BLE connection is established
-#                     sp.on_write(on_rx)  # Set the callback function for data reception
-#                     ledStatus = "On" if led_state == 1 else "Off"
-#                     # Create a message string
-#                     msg="LED State:"+ledStatus+" TEMP: {}C".format(round(temp,1))+" %RH: {}%\r\n".format(round(humidity,2))
-#                     # Send the message via BLE
-#                     sp.send(msg)
-#                     # Update the debounce time    
-#                     debounce_time=time.ticks_ms()
-#             print('This message will be printed every 1 seconds')
