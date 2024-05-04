@@ -14,17 +14,17 @@ class DisplayService():
         print('Display conf: ', config) 
         self.I2C = I2C(config['I2Channel'],sda=Pin(config['sda_pin']), scl=Pin(config['scl_pin']), freq=config['freq'])
         self.width = config['width']
+        self.config = config
         self.availableSplashLogo = Logos()
         self.height = config['height']
+        self.defaultSplashLogo = config['splashLogo']
         self.display = SSD1306_I2C(self.width, self.height, self.I2C)
         self.displayFormat = writer.Writer(self.display, freesans20)
         self.setTextPos = self.displayFormat.set_textpos
         self.applyText = self.displayFormat.printstring
         self.show = self.display.show
-        self.infinte_bar = progress_bar.ProgressBar(10, 40, self.width - 20, 15, self.display)
+        
         self._connectionState = connection_state
-        if self._connectionState == False:
-            self.initProgressBar()
         
     def clearDisplay(self, value=0):
         self.display.invert(0)
@@ -40,16 +40,36 @@ class DisplayService():
         self.display.blit(frame,0,0)
         self.display.show()
         time.sleep(timeToDisplay)
-    
-    def initProgressBar(self, message=''):
-        #To DO implement message parser
-        self.display.text('connecting to', 0, 10)
-        self.display.text('network...', 0, 20)
         
-    def displayProgressBar(self):
-        self.infinte_bar.update()
-        self.display.show()
-    
+    def displayProgressBar(self, config=None, message='', splashLogo = 'Bento', displayLogo = False):
+        cfg = config.get('progressBar')
+        timeToDisplay = cfg.get('timeToDisplay')
+        if displayLogo == True:
+            self.displaySplash(splashLogo, timeToDisplay/10, 1)
+        else:
+            #To DO implement message parser
+            self.display.text('connecting to', 0, 10)
+            self.display.text('network...', 0, 20)
+        if not cfg:
+            self.infinte_bar = progress_bar.ProgressBar(10, 40, self.width - 20, 15, self.display)
+        else:
+            pos_x = cfg.get('pos_x')
+            pos_y = cfg.get('pos_y')
+            height = cfg.get('height')
+            width = cfg.get('width')
+            self.infinte_bar = progress_bar.ProgressBar(pos_x, pos_y, width, height, self.display)
+        secondsPass = 0
+        if cfg.get('timeToDisplay'):
+            while secondsPass < timeToDisplay:
+                start_time = time.time()
+                self.infinte_bar.update()
+                self.display.show()
+                secondsPass += time.time() - start_time
+        else:
+            self.infinte_bar.update()    
+            self.display.show() 
+        
+            
     @property
     def connectionState(self):
         return self._connectionState
@@ -67,8 +87,7 @@ class DisplayService():
         while True:
             print('connection_state from display service: '+ str(self._connectionState))
             if self._connectionState == False:
-                self.initProgressBar()
-                self.displayProgressBar()
+                self.displayProgressBar(self.config)
             else:
                 if count == 0:
                     self.clearDisplay()
