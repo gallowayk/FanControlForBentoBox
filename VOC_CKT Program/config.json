@@ -22,11 +22,20 @@
         "height": 64,
         "freq": 400000,
         "splashLogo": "Creality",
-        "I2Channel": 0
+        "I2Channel": 0,
+        "progressBar": {
+            "pos_x": 10,
+            "pos_y": 50,
+            "width": 108,
+            "height": 8,
+            "timeToDisplay": 5
+        }
     },
-    "network":{
-        
-    },
-    
-    
+    "mqtt":{
+       "host":"hollywoodnas.synology.me",
+       "port":"8883",
+       "user":"mosquittoUser",
+       "password":"mosquitoPass",
+       "ssl":true
+    }
 }

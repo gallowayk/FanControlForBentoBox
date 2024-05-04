@@ -1,8 +1,6 @@
 import json
 from machine import Pin, I2C, ADC
 from picozero import pico_led
-from ssd1306 import SSD1306_I2C
-import ssd1306
 import time
 import framebuf
 import freesans20
@@ -23,13 +21,6 @@ with open("config.json") as f:
 connection_state = False
 sensors = Sensors(config['sensors'])
 display = DisplayService(connection_state, config['display'])
-# Check if we have extended network and Bluetooth LE capabilities with Pi Pico W if not we continue with basic capabilities.
-if uname()[4] == 'Raspberry Pi Pico W with RP2040':
-    print('RPi Pico W')   # True    
-    display.displaySplash('Creality')
-else:
-    print('RPi Pico')     # False
-    display.displaySplash('Creality')
 
 ble = bluetooth.BLE()
 

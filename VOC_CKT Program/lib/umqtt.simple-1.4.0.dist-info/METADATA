@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: umqtt.simple
+Version: 1.4.0
+Summary: Lightweight MQTT client for MicroPython.
+Author: 
+License: MIT

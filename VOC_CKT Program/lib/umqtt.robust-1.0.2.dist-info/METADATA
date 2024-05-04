@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: umqtt.robust
+Version: 1.0.2
+Summary: Lightweight MQTT client for MicroPython ("robust" version).
+Author: 
+License: MIT
