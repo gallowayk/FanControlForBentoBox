@@ -34,8 +34,8 @@
     "mqtt":{
        "host":"hollywoodnas.synology.me",
        "port":"8883",
-       "user":"kovacssupki",
-       "password":"X28wXxRvwO",
+       "user":"mosquittoUser",
+       "password":"mosquitoPass",
        "ssl":true
     }
 }
