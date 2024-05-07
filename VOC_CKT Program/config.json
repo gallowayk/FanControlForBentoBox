@@ -6,7 +6,7 @@
             "sense_pin": 26,
             "threshold": 1.1,
             "analog": true,
-            "avg_interval": 49
+            "avg_interval": 75
         },
         "ahtx": {
             "sda_pin": 14,
