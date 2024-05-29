@@ -14,20 +14,14 @@ class InitService():
         self.debounce_time = 0
         # Create an instance of the BLESimplePeripheral class with the BLE object
         self.blePeripheal = BLESimplePeripheral(self.bluetooth)
+        self.initState = {'uuidSent':False,'isRegisteredToUser':False, 'wirelessOk':False}
         try:
             while True:
                 if (time.ticks_ms() - self.debounce_time) > 300:
                     if self.blePeripheal.is_connected():  # Check if a BLE connection is established
                         self.blePeripheal.on_write(self.on_rx)  # Set the callback function for data reception
-            #             ledStatus = "On" if led_state == 1 else "Off"
-                        # Create a message string
-                        UUID = ubinascii.hexlify(machine.unique_id()).decode()
-                        msg={}
-                        msg['deviceId']= UUID
-                        # Send the message via BLE
-                        str = json.dumps(msg)
-                        print('String to send over Ble', json.dumps(msg))
-                        self.blePeripheal.send(str)
+                        if self.initState['uuidSent']==False:
+                           self.sendUUID()
                         # Update the debounce time    
                         self.debounce_time=time.ticks_ms()
         except KeyboardInterrupt:
@@ -36,10 +30,15 @@ class InitService():
     # Define a callback function to handle received data
     def on_rx(self, data):
         print("Data received: ", data)  # Print the received data
-#         global led_state  # Access the global variable led_state
-        if data == b'toggle\r\n':  # Check if the received data is "toggle"
-            print("data is what we want", led_state, led, led.value)
-#             led_state = 1 - led_state  # Update the LED state
-#             pico_led.on() if led_state == 1 else pico_led.off() # Toggle the LED state (on/off)
+        config = json.loads(data)
+        if config['bind']==True and not config['userId']:
+            self.initState['uuidSent']= True
+
         
-    
+    def sendUUID(self ):
+        UUID = ubinascii.hexlify(machine.unique_id()).decode()
+        msg={}
+        msg['deviceId']= UUID
+        str = json.dumps(msg)
+        print('Sending device Id to Phone', str)
+        self.blePeripheal.send(str)
