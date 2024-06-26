@@ -16,7 +16,7 @@ class Sensors():
                 setattr(currentSensor, 'analog_def', ADC(currentSensor.sense_pin))
             else:
                 setattr(currentSensor, 'I2C', I2C(currentSensor.I2Channel, sda=Pin(currentSensor.sda_pin), scl=Pin(currentSensor.scl_pin), freq=currentSensor.freq))
-
+        self.voc_level_sum = 0
         self.initAhtxSensor()
         self.initVocSensor()
         
@@ -30,6 +30,7 @@ class Sensors():
         #           Special case for our VOC sensor used, it is for calibration.
         voc_conv = 5/65535
         setattr(self.voc, 'conversion', voc_conv)
+        setattr(self.voc, 'voc_level_avg', 0)
     
     @property
     def temperature(self):
@@ -39,8 +40,15 @@ class Sensors():
     def humidity(self):
         return self.ahtx.sensor.relative_humidity
     
+    def updateAirQualityIndex(self, interval):
+        currentValue = self.voc.analog_def.read_u16() * self.voc.conversion
+        self.voc_level_sum += currentValue
+        if interval <= self.voc.avg_interval:
+            self.voc_level_avg = self.voc_level_sum/interval
+        else:
+            self.voc_level_sum = self.voc_level_avg
+
     @property
     def airQualityIndex(self):
-        self._airQualityIndex = self.voc.analog_def.read_u16() * self.voc.conversion
-        return self._airQualityIndex
+        return self.voc_level_avg
         

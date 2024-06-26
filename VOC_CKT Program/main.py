@@ -71,11 +71,24 @@ async def main():
 #     task_connect = asyncio.create_task(webInterface.connect())
     asyncio.create_task(asyncio.start_server(serveWrapper, "0.0.0.0", 80))
     
- 
+    count = 0
+    voc_level_sum = 0 
     # Main Loop
     while True:
         connection_state = webInterface.isConnected
         display.setConnectionState(connection_state)
+        if count <= config['sensors']['voc']['avg_interval']:
+            count += 1
+            sensors.updateAirQualityIndex(count)
+        else:
+            count = 1
+            
+        if sensors.airQualityIndex >= sensors.voc.threshold:
+            fan_relay.on() #relay pin high
+            print('Fan ON')
+        else: 
+            print('Fan Off')
+            fan_relay.off()
 #         if not webInterface.isConnected:  # If not connected to Wi-Fi
 #             webInterface.disconnect()       # Disconnect from current Wi-Fi network
 #             webInterface.connect()    # Reconnect to Wi-Fi network
