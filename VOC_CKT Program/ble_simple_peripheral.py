@@ -1,5 +1,4 @@
 # This example demonstrates a UART periperhal.
-
 import bluetooth
 import random
 import struct
@@ -38,6 +37,7 @@ class BLESimplePeripheral:
         self._ble.active(True)
         self._ble.irq(self._irq)
         ((self._handle_tx, self._handle_rx),) = self._ble.gatts_register_services((_UART_SERVICE,))
+        self._ble.gatts_set_buffer(self._handle_rx, 517)
         self._connections = set()
         self._write_callback = None
         self._payload = advertising_payload(name=name, services=[_UART_UUID])
@@ -78,6 +78,7 @@ class BLESimplePeripheral:
 
 def demo():
     ble = bluetooth.BLE()
+    ble.config(rxbuf=517)
     p = BLESimplePeripheral(ble)
 
     def on_rx(v):
