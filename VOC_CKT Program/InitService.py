@@ -1,149 +1,126 @@
-import time
-import bluetooth
-import machine
 import json
-import ubinascii
-from base64 import b64decode
-
+import time
 from ble_simple_peripheral import BLESimplePeripheral
 
-class InitService():
-    def __init__ (self, isInitialised):
-        print('Initialisation started')
-        self.bluetooth = bluetooth.BLE()
-        self.isInitialised = isInitialised
-        self.debounce_time = 0
-        # Create an instance of the BLESimplePeripheral class with the BLE object
-        self.blePeripheal = BLESimplePeripheral(self.bluetooth)
-        
-        self.initState = {'uuidSent':False,'isRegisteredToUser':False, 'wirelessOk':False}
-        try:
-            while True:
-                if (time.ticks_ms() - self.debounce_time) > 300:
-                    if self.blePeripheal.is_connected():  # Check if a BLE connection is established
-                        self.blePeripheal.on_write(self.on_rx)  # Set the callback function for data reception
-                        if self.initState['uuidSent']==False:
-                           print(self.initState['uuidSent'])
-                           self.sendUUID()
-                        # Update the debounce time    
-                        self.debounce_time=time.ticks_ms()
-        except KeyboardInterrupt:
-            pass
-        
-    # Define a callback function to handle received data
+class InitService:
+    def __init__(self, blePeripheral: BLESimplePeripheral):
+        self.blePeripheral = blePeripheral
+        self.setupBLE()
+
+    def setupBLE(self):
+        # Set up the callback for when data is received
+        self.blePeripheral.on_write(self.on_rx)
+        print("✅ InitService initialized and ready to receive data")
+
     def on_rx(self, data):
-        print("Data received: ", data)  # Print the received data
+        """Handle incoming data from Android app"""
         try:
-            config = json.loads(data.decode())
-            print("Received config:", config);
+            # Decode the received data
+            message = data.decode('utf-8')
+            print(f"Data received: {data}")
             
-            # Handle WiFi configuration message
+            # Parse the JSON message
+            config = json.loads(message)
+            print(f"Received config: {config}")
+            
+            # Handle different message types
             if config.get('type') == 'wifi_config':
                 print("WiFi config received - SSID:", config.get('ssid'), "Security:", config.get('security'))
                 self.handleWiFiConfig(config.get('ssid'), config.get('password'), config.get('security'))
                 return
-            
-            # Handle bind message with userID and deviceId
-            if config.get('userID') and config.get('deviceId'):
-                print("Bind message received - userID:", config.get('userID'), "deviceId:", config.get('deviceId'))
+            elif config.get('type') == 'splash_logo_config':
+                print("Splash logo config received - Logo ID:", config.get('logoId'), "Name:", config.get('logoName'))
+                self.handleSplashLogoConfig(config.get('logoId'), config.get('logoName'))
+                return
+            elif config.get('userID') and config.get('deviceId'):
+                print(f"Bind message received - userID: {config.get('userID')} deviceId: {config.get('deviceId')}")
                 self.createUserConfig(config.get('userID'), config.get('deviceId'))
                 return
+            elif config.get('connectionSuccess'):
+                print("Connection success message received")
+                return
+            else:
+                print("Unknown message type received")
                 
-            # Handle legacy connectionSuccess message
-            if config.get('connectionSuccess')==True and not config.get('userId'):
-                self.initState['uuidSent']= True
-                
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
         except Exception as e:
-            print("Error processing received data:", e)
-        
+            print(f"Error processing message: {e}")
+
     def createUserConfig(self, userID, deviceId):
-        """Create userConfig.json with userID and deviceId, then verify and send success"""
+        """Create or update user configuration file"""
         try:
-            user_config = {
-                'userID': userID,
-                'deviceId': deviceId,
-                'splashLogo': 'SmartBento',
-                'is_initialized': True,
-                'registration_date': time.time()
-            }
-            
-            # Save the configuration
-            with open("userConfig.json", "w") as f:
-                json.dump(user_config, f)
-            
-            print("User configuration saved successfully")
-            
-            # Read it back to verify
-            try:
-                with open("userConfig.json", "r") as f:
-                    saved_config = json.load(f)
-                
-                print("✅ Configuration verified - userConfig.json contents:")
-                print("   User ID:", saved_config.get('userID'))
-                print("   Device ID:", saved_config.get('deviceId'))
-                print("   Splash Logo:", saved_config.get('splashLogo'))
-                print("   Initialized:", saved_config.get('is_initialized'))
-                print("   Registration Date:", saved_config.get('registration_date'))
-                
-                # Send success response back to Android app
-                success_response = {
-                    'type': 'bind_response',
-                    'status': 'success',
-                    'message': 'Device bound successfully',
-                    'userID': saved_config.get('userID'),
-                    'deviceId': saved_config.get('deviceId')
-                }
-                
-                self.blePeripheal.send(json.dumps(success_response))
-                print("✅ Success response sent to Android app")
-                
-                # Update initialization state
-                self.initState['isRegisteredToUser'] = True
-                self.isInitialised = True
-                
-            except Exception as read_error:
-                print("❌ Error reading back config:", read_error)
-                # Send error response
-                error_response = {
-                    'type': 'bind_response',
-                    'status': 'error',
-                    'message': 'Config saved but could not verify'
-                }
-                self.blePeripheal.send(json.dumps(error_response))
-                
-        except Exception as e:
-            print("❌ Error creating user config:", e)
-            # Send error response
-            error_response = {
-                'type': 'bind_response',
-                'status': 'error',
-                'message': f'Failed to save config: {str(e)}'
-            }
-            self.blePeripheal.send(json.dumps(error_response))
-        
-    def handleWiFiConfig(self, ssid, password, security):
-        """Handle WiFi configuration from Android app and save to userConfig.json"""
-        try:
-            print("🔐 Processing WiFi configuration...")
-            print("   SSID:", ssid)
-            print("   Security:", security)
-            print("   Password: [HIDDEN]")
-            
-            # Read existing userConfig.json
+            # Try to read existing config
             try:
                 with open("userConfig.json", "r") as f:
                     user_config = json.load(f)
-                print("📖 Loaded existing userConfig.json")
-            except:
-                print("⚠️ No existing userConfig.json found, creating new one")
+                    print("📖 Existing userConfig.json loaded")
+            except FileNotFoundError:
+                # Create new config if file doesn't exist
                 user_config = {
-                    'userID': 'unknown',
-                    'deviceId': 'unknown',
-                    'splashLogo': 'SmartBento',
-                    'is_initialized': False,
-                    'registration_date': time.time()
+                    "userID": userID,
+                    "deviceId": deviceId,
+                    "bound_at": time.time(),
+                    "last_updated": time.time(),
+                    "wifi_configured": False,
+                    "splash_logo_configured": False
                 }
+                print("📝 Created new user configuration")
+
+            # Update with new binding info
+            user_config["userID"] = userID
+            user_config["deviceId"] = deviceId
+            user_config["bound_at"] = time.time()
+            user_config["last_updated"] = time.time()
+
+            # Save updated configuration
+            with open("userConfig.json", "w") as f:
+                json.dump(user_config, f)
             
+            print("✅ User configuration saved to userConfig.json")
+            
+            # Send success response back to Android app
+            success_response = {
+                "type": "bind_response",
+                "status": "success",
+                "message": "Device bound successfully",
+                "userID": userID,
+                "deviceId": deviceId,
+                "bound_at": user_config["bound_at"]
+            }
+            self.blePeripheral.send(json.dumps(success_response))
+            print("📤 Sent bind_response to Android app")
+            
+        except Exception as e:
+            print(f"Error creating user config: {e}")
+            # Send error response
+            error_response = {
+                "type": "bind_response",
+                "status": "error",
+                "message": f"Failed to create user config: {str(e)}"
+            }
+            self.blePeripheral.send(json.dumps(error_response))
+
+    def handleWiFiConfig(self, ssid, password, security):
+        """Handle WiFi configuration from Android app and save to userConfig.json"""
+        try:
+            # Read existing user config or create new one
+            try:
+                with open("userConfig.json", "r") as f:
+                    user_config = json.load(f)
+                    print("📖 Loaded existing userConfig.json for WiFi config")
+            except FileNotFoundError:
+                # Create basic config if file doesn't exist
+                user_config = {
+                    "userID": "unknown",
+                    "deviceId": "unknown",
+                    "bound_at": time.time(),
+                    "last_updated": time.time(),
+                    "wifi_configured": False,
+                    "splash_logo_configured": False
+                }
+                print("📝 Created new user configuration for WiFi config")
+
             # Update WiFi configuration
             user_config['wifi_config'] = {
                 'ssid': ssid,
@@ -163,59 +140,95 @@ class InitService():
             
             print("✅ WiFi configuration saved to userConfig.json")
             
-            # Read it back to verify
-            try:
-                with open("userConfig.json", "r") as f:
-                    saved_config = json.load(f)
-                
-                print("📋 Configuration verified - WiFi details:")
+            # Read back the saved config to verify
+            with open("userConfig.json", "r") as f:
+                saved_config = json.load(f)
                 wifi_cfg = saved_config.get('wifi_config', {})
-                print("   SSID:", wifi_cfg.get('ssid'))
-                print("   Security:", wifi_cfg.get('security'))
-                print("   Configured at:", wifi_cfg.get('configured_at'))
-                print("   WiFi configured:", saved_config.get('wifi_configured'))
-                
-                # Send success response back to Android app
-                success_response = {
-                    'type': 'wifi_config_response',
-                    'status': 'success',
-                    'message': 'WiFi configuration saved successfully',
-                    'ssid': ssid,
-                    'security': security,
-                    'configured_at': wifi_cfg.get('configured_at')
-                }
-                
-                self.blePeripheal.send(json.dumps(success_response))
-                print("✅ WiFi config success response sent to Android app")
-                
-            except Exception as read_error:
-                print("❌ Error reading back config:", read_error)
-                # Send error response
-                error_response = {
-                    'type': 'wifi_config_response',
-                    'status': 'error',
-                    'message': 'Config saved but could not verify'
-                }
-                self.blePeripheal.send(json.dumps(error_response))
-                
+            
+            # Send success response back to Android app
+            success_response = {
+                'type': 'wifi_config_response',
+                'status': 'success',
+                'message': 'WiFi configuration saved successfully',
+                'ssid': ssid,
+                'security': security,
+                'configured_at': wifi_cfg.get('configured_at')
+            }
+            self.blePeripheral.send(json.dumps(success_response))
+            print("📤 Sent wifi_config_response to Android app")
+            
         except Exception as e:
-            print("❌ Error handling WiFi config:", e)
+            print(f"❌ Error handling WiFi config: {e}")
             # Send error response
             error_response = {
                 'type': 'wifi_config_response',
                 'status': 'error',
                 'message': f'Failed to save WiFi config: {str(e)}'
             }
-            self.blePeripheal.send(json.dumps(error_response))
-        
-    def sendUUID(self ):
-        if self.blePeripheal.is_connected():
-            UUID = ubinascii.hexlify(machine.unique_id()).decode()
-            msg={}
-            msg['deviceId']= UUID
-            str = json.dumps(msg)
-            print('Sending device Id to Phone', str)
-            self.blePeripheal.send(str)
-            return
-        print('Sending canceled device disconected')
+            self.blePeripheral.send(json.dumps(error_response))
+
+    def handleSplashLogoConfig(self, logoId, logoName):
+        """Handle splash logo configuration from Android app and save to userConfig.json"""
+        try:
+            # Read existing user config or create new one
+            try:
+                with open("userConfig.json", "r") as f:
+                    user_config = json.load(f)
+                    print("📖 Loaded existing userConfig.json for splash logo config")
+            except FileNotFoundError:
+                # Create basic config if file doesn't exist
+                user_config = {
+                    "userID": "unknown",
+                    "deviceId": "unknown",
+                    "bound_at": time.time(),
+                    "last_updated": time.time(),
+                    "wifi_configured": False,
+                    "splash_logo_configured": False
+                }
+                print("📝 Created new user configuration for splash logo config")
+
+            # Update splash logo configuration
+            user_config['splash_logo_config'] = {
+                'logoId': logoId,
+                'logoName': logoName,
+                'configured_at': time.time(),
+                'configured_by': user_config.get('userID', 'unknown')
+            }
+            
+            # Mark as splash logo configured
+            user_config['splash_logo_configured'] = True
+            user_config['last_updated'] = time.time()
+            
+            # Save updated configuration
+            with open("userConfig.json", "w") as f:
+                json.dump(user_config, f)
+            
+            print(f"✅ Splash logo configuration saved: {logoName} (ID: {logoId})")
+            
+            # Read back the saved config to verify
+            with open("userConfig.json", "r") as f:
+                saved_config = json.load(f)
+                logo_cfg = saved_config.get('splash_logo_config', {})
+            
+            # Send success response back to Android app
+            success_response = {
+                'type': 'splash_logo_response',
+                'status': 'success',
+                'message': f'Splash logo "{logoName}" set successfully',
+                'logoId': logoId,
+                'logoName': logoName,
+                'configured_at': logo_cfg.get('configured_at')
+            }
+            self.blePeripheral.send(json.dumps(success_response))
+            print("📤 Sent splash_logo_response to Android app")
+            
+        except Exception as e:
+            print(f"❌ Error handling splash logo config: {e}")
+            # Send error response
+            error_response = {
+                'type': 'splash_logo_response',
+                'status': 'error',
+                'message': f'Failed to set splash logo: {str(e)}'
+            }
+            self.blePeripheral.send(json.dumps(error_response))
         

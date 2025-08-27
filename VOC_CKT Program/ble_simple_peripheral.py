@@ -3,6 +3,8 @@ import bluetooth
 import random
 import struct
 import time
+import machine
+import ubinascii
 from ble_advertising import advertising_payload
 
 from micropython import const
@@ -31,15 +33,65 @@ _UART_SERVICE = (
 )
 
 
+# Get unique device ID (last 4 characters of flash ID)
+flash_id = ubinascii.hexlify(machine.unique_id()).decode()
+device_uuid = flash_id[-4:].upper()
+name = f"SmartBento-{device_uuid}"
+print(f"🔧 Generated device name: {name}")
+print(f"   Flash ID: {flash_id}")
+print(f"   Device UUID: {device_uuid}")
+
 class BLESimplePeripheral:
-    def __init__(self, ble, name="mpy-uart"):
+    def __init__(self, ble, name=name):
         self._ble = ble
+        
+        # Method 2: Hard Reset with Cleanup
+        print("🔄 Performing BLE hard reset with cleanup...")
+        
+        # Stop advertising and disconnect all connections
+        try:
+            self._ble.gap_advertise(None)  # Stop advertising
+            print("   ✅ Advertising stopped")
+        except:
+            print("   ⚠️ No active advertising to stop")
+        
+        # Turn off BLE
+        self._ble.active(False)
+        print("   ✅ BLE turned off")
+        
+        # Clean up memory
+        import gc
+        gc.collect()
+        print("   ✅ Memory cleanup complete")
+        
+        # Wait for cleanup
+        import time
+        time.sleep(1)
+        print("   ⏳ Waited for cleanup")
+        
+        # Restart BLE
         self._ble.active(True)
+        print("✅ BLE hard reset complete")
+        
         self._ble.irq(self._irq)
         ((self._handle_tx, self._handle_rx),) = self._ble.gatts_register_services((_UART_SERVICE,))
         self._ble.gatts_set_buffer(self._handle_rx, 517)
         self._connections = set()
         self._write_callback = None
+        
+        # Generate device name: SmartBento + 4-letter UUID
+        if name is None:
+            # Get unique device ID (last 4 characters of flash ID)
+            flash_id = ubinascii.hexlify(machine.unique_id()).decode()
+            device_uuid = flash_id[-4:].upper()
+            name = f"SmartBento-{device_uuid}"
+            print(f"🔧 Generated device name: {name}")
+            print(f"   Flash ID: {flash_id}")
+            print(f"   Device UUID: {device_uuid}")
+        else:
+            print(f"🔧 Using provided device name: {name}")
+        
+        print(f"📡 Setting up BLE advertising with name: {name}")
         self._payload = advertising_payload(name=name, services=[_UART_UUID])
         self._advertise()
 
