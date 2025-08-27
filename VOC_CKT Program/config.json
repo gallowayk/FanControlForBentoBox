@@ -5,7 +5,8 @@
             "level_sum": 0,
             "sense_pin": 26,
             "threshold": 1.1,
-            "analog": true
+            "analog": true,
+            "avg_interval": 75
         },
         "ahtx": {
             "sda_pin": 14,
@@ -34,8 +35,8 @@
     "mqtt":{
        "host":"hollywoodnas.synology.me",
        "port":"8883",
-       "user":"mosquittoUser",
-       "password":"mosquitoPass",
+       "user":"kovacssupki",
+       "password":"X28wXxRvwO",
        "ssl":true
     }
 }
