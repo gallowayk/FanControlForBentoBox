@@ -37,6 +37,12 @@ class InitService():
             config = json.loads(data.decode())
             print("Received config:", config);
             
+            # Handle WiFi configuration message
+            if config.get('type') == 'wifi_config':
+                print("WiFi config received - SSID:", config.get('ssid'), "Security:", config.get('security'))
+                self.handleWiFiConfig(config.get('ssid'), config.get('password'), config.get('security'))
+                return
+            
             # Handle bind message with userID and deviceId
             if config.get('userID') and config.get('deviceId'):
                 print("Bind message received - userID:", config.get('userID'), "deviceId:", config.get('deviceId'))
@@ -112,6 +118,93 @@ class InitService():
                 'type': 'bind_response',
                 'status': 'error',
                 'message': f'Failed to save config: {str(e)}'
+            }
+            self.blePeripheal.send(json.dumps(error_response))
+        
+    def handleWiFiConfig(self, ssid, password, security):
+        """Handle WiFi configuration from Android app and save to userConfig.json"""
+        try:
+            print("🔐 Processing WiFi configuration...")
+            print("   SSID:", ssid)
+            print("   Security:", security)
+            print("   Password: [HIDDEN]")
+            
+            # Read existing userConfig.json
+            try:
+                with open("userConfig.json", "r") as f:
+                    user_config = json.load(f)
+                print("📖 Loaded existing userConfig.json")
+            except:
+                print("⚠️ No existing userConfig.json found, creating new one")
+                user_config = {
+                    'userID': 'unknown',
+                    'deviceId': 'unknown',
+                    'splashLogo': 'SmartBento',
+                    'is_initialized': False,
+                    'registration_date': time.time()
+                }
+            
+            # Update WiFi configuration
+            user_config['wifi_config'] = {
+                'ssid': ssid,
+                'password': password,
+                'security': security,
+                'configured_at': time.time(),
+                'configured_by': user_config.get('userID', 'unknown')
+            }
+            
+            # Mark as WiFi configured
+            user_config['wifi_configured'] = True
+            user_config['last_updated'] = time.time()
+            
+            # Save updated configuration
+            with open("userConfig.json", "w") as f:
+                json.dump(user_config, f)
+            
+            print("✅ WiFi configuration saved to userConfig.json")
+            
+            # Read it back to verify
+            try:
+                with open("userConfig.json", "r") as f:
+                    saved_config = json.load(f)
+                
+                print("📋 Configuration verified - WiFi details:")
+                wifi_cfg = saved_config.get('wifi_config', {})
+                print("   SSID:", wifi_cfg.get('ssid'))
+                print("   Security:", wifi_cfg.get('security'))
+                print("   Configured at:", wifi_cfg.get('configured_at'))
+                print("   WiFi configured:", saved_config.get('wifi_configured'))
+                
+                # Send success response back to Android app
+                success_response = {
+                    'type': 'wifi_config_response',
+                    'status': 'success',
+                    'message': 'WiFi configuration saved successfully',
+                    'ssid': ssid,
+                    'security': security,
+                    'configured_at': wifi_cfg.get('configured_at')
+                }
+                
+                self.blePeripheal.send(json.dumps(success_response))
+                print("✅ WiFi config success response sent to Android app")
+                
+            except Exception as read_error:
+                print("❌ Error reading back config:", read_error)
+                # Send error response
+                error_response = {
+                    'type': 'wifi_config_response',
+                    'status': 'error',
+                    'message': 'Config saved but could not verify'
+                }
+                self.blePeripheal.send(json.dumps(error_response))
+                
+        except Exception as e:
+            print("❌ Error handling WiFi config:", e)
+            # Send error response
+            error_response = {
+                'type': 'wifi_config_response',
+                'status': 'error',
+                'message': f'Failed to save WiFi config: {str(e)}'
             }
             self.blePeripheal.send(json.dumps(error_response))
         
