@@ -34,7 +34,6 @@ def advertising_payload(limited_disc=False, br_edr=False, name=None, services=No
     )
 
     if name:
-        print(f"🔧 Recieved advertising in ble_advertising.py name: {name}")
         _append(_ADV_TYPE_NAME, name)
 
     if services:
