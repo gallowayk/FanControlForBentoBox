@@ -33,11 +33,87 @@ class InitService():
     # Define a callback function to handle received data
     def on_rx(self, data):
         print("Data received: ", data)  # Print the received data
-        config = json.loads(data.decode())
-        print(config);
-        if config.get('connectionSuccess')==True and not config.get('userId'):
-            self.initState['uuidSent']= True
-
+        try:
+            config = json.loads(data.decode())
+            print("Received config:", config);
+            
+            # Handle bind message with userID and deviceId
+            if config.get('userID') and config.get('deviceId'):
+                print("Bind message received - userID:", config.get('userID'), "deviceId:", config.get('deviceId'))
+                self.createUserConfig(config.get('userID'), config.get('deviceId'))
+                return
+                
+            # Handle legacy connectionSuccess message
+            if config.get('connectionSuccess')==True and not config.get('userId'):
+                self.initState['uuidSent']= True
+                
+        except Exception as e:
+            print("Error processing received data:", e)
+        
+    def createUserConfig(self, userID, deviceId):
+        """Create userConfig.json with userID and deviceId, then verify and send success"""
+        try:
+            user_config = {
+                'userID': userID,
+                'deviceId': deviceId,
+                'splashLogo': 'SmartBento',
+                'is_initialized': True,
+                'registration_date': time.time()
+            }
+            
+            # Save the configuration
+            with open("userConfig.json", "w") as f:
+                json.dump(user_config, f)
+            
+            print("User configuration saved successfully")
+            
+            # Read it back to verify
+            try:
+                with open("userConfig.json", "r") as f:
+                    saved_config = json.load(f)
+                
+                print("✅ Configuration verified - userConfig.json contents:")
+                print("   User ID:", saved_config.get('userID'))
+                print("   Device ID:", saved_config.get('deviceId'))
+                print("   Splash Logo:", saved_config.get('splashLogo'))
+                print("   Initialized:", saved_config.get('is_initialized'))
+                print("   Registration Date:", saved_config.get('registration_date'))
+                
+                # Send success response back to Android app
+                success_response = {
+                    'type': 'bind_response',
+                    'status': 'success',
+                    'message': 'Device bound successfully',
+                    'userID': saved_config.get('userID'),
+                    'deviceId': saved_config.get('deviceId')
+                }
+                
+                self.blePeripheal.send(json.dumps(success_response))
+                print("✅ Success response sent to Android app")
+                
+                # Update initialization state
+                self.initState['isRegisteredToUser'] = True
+                self.isInitialised = True
+                
+            except Exception as read_error:
+                print("❌ Error reading back config:", read_error)
+                # Send error response
+                error_response = {
+                    'type': 'bind_response',
+                    'status': 'error',
+                    'message': 'Config saved but could not verify'
+                }
+                self.blePeripheal.send(json.dumps(error_response))
+                
+        except Exception as e:
+            print("❌ Error creating user config:", e)
+            # Send error response
+            error_response = {
+                'type': 'bind_response',
+                'status': 'error',
+                'message': f'Failed to save config: {str(e)}'
+            }
+            self.blePeripheal.send(json.dumps(error_response))
         
     def sendUUID(self ):
         if self.blePeripheal.is_connected():

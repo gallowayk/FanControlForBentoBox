@@ -15,8 +15,14 @@ try:
     with open("userConfig.json") as f:
         userCfg = json.load(f)
         isInitialised = True
+        print("✅ User configuration loaded successfully")
+        print("   User ID:", userCfg.get('userID', 'Not set'))
+        print("   Device ID:", userCfg.get('deviceId', 'Not set'))
+        print("   Splash Logo:", userCfg.get('splashLogo', 'Default'))
+        print("   Initialized:", userCfg.get('is_initialized', False))
 except Exception as error:
-    print(error, ' -> No User Config found. Continue Device Setup!')
+    print("❌ No User Config found:", error)
+    print("   Continue Device Setup!")
 
 splashLogo = userCfg.get('splashLogo') or config['display']['splashLogo']    
 # Display the splash screen
