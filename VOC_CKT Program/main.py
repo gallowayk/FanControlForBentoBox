@@ -118,5 +118,7 @@ async def main():
 
 try:
     asyncio.run(main())  # Run the main asynchronous function
+except Exception as e:
+    print(f"Error in main: {e}")
 finally:
-    asyncio.new_event_loop() #Create a new event loopexcept Exception as e:
+    asyncio.new_event_loop() #Create a new event loop
